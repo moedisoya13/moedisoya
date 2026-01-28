@@ -36,36 +36,44 @@ export default function HomePage() {
   }, []);
 
   const fetchData = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = addDays(today, 1);
-    const weekEnd = addDays(today, 7);
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = addDays(today, 1);
+      const weekEnd = addDays(today, 7);
 
-    // 오늘 일정
-    const todayRes = await fetch(
-      `/api/appointments?startDate=${today.toISOString()}&endDate=${tomorrow.toISOString()}`
-    );
-    const todayData = await todayRes.json();
-    setTodayAppointments(todayData.filter((a: Appointment) => a.status === "scheduled"));
+      // 오늘 일정
+      const todayRes = await fetch(
+        `/api/appointments?startDate=${today.toISOString()}&endDate=${tomorrow.toISOString()}`
+      );
+      const todayData = await todayRes.json();
+      if (Array.isArray(todayData)) {
+        setTodayAppointments(todayData.filter((a: Appointment) => a.status === "scheduled"));
+      }
 
-    // 이번 주 일정
-    const weekRes = await fetch(
-      `/api/appointments?startDate=${tomorrow.toISOString()}&endDate=${weekEnd.toISOString()}`
-    );
-    const weekData = await weekRes.json();
-    setUpcomingAppointments(weekData.filter((a: Appointment) => a.status === "scheduled").slice(0, 5));
+      // 이번 주 일정
+      const weekRes = await fetch(
+        `/api/appointments?startDate=${tomorrow.toISOString()}&endDate=${weekEnd.toISOString()}`
+      );
+      const weekData = await weekRes.json();
+      if (Array.isArray(weekData)) {
+        setUpcomingAppointments(weekData.filter((a: Appointment) => a.status === "scheduled").slice(0, 5));
+      }
 
-    // 통계
-    const clientsRes = await fetch("/api/clients?status=진행");
-    const clientsData = await clientsRes.json();
+      // 통계
+      const clientsRes = await fetch("/api/clients?status=진행");
+      const clientsData = await clientsRes.json();
 
-    setStats({
-      todayCount: todayData.filter((a: Appointment) => a.status === "scheduled").length,
-      weekCount: weekData.filter((a: Appointment) => a.status === "scheduled").length,
-      activeClients: clientsData.length,
-    });
-
-    setLoading(false);
+      setStats({
+        todayCount: Array.isArray(todayData) ? todayData.filter((a: Appointment) => a.status === "scheduled").length : 0,
+        weekCount: Array.isArray(weekData) ? weekData.filter((a: Appointment) => a.status === "scheduled").length : 0,
+        activeClients: Array.isArray(clientsData) ? clientsData.length : 0,
+      });
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatAppointmentDate = (datetime: string) => {

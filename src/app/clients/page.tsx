@@ -28,15 +28,22 @@ export default function ClientsPage() {
 
   const fetchClients = async () => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (filters.location !== "전체") params.set("location", filters.location);
-    if (filters.status !== "전체") params.set("status", filters.status);
-    if (filters.type !== "전체") params.set("type", filters.type);
+    try {
+      const params = new URLSearchParams();
+      if (filters.location !== "전체") params.set("location", filters.location);
+      if (filters.status !== "전체") params.set("status", filters.status);
+      if (filters.type !== "전체") params.set("type", filters.type);
 
-    const res = await fetch(`/api/clients?${params.toString()}`);
-    const data = await res.json();
-    setClients(data);
-    setLoading(false);
+      const res = await fetch(`/api/clients?${params.toString()}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setClients(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredClients = clients.filter((client) =>

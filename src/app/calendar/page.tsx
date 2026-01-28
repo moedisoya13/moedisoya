@@ -41,15 +41,22 @@ export default function CalendarPage() {
 
   const fetchAppointments = async () => {
     setLoading(true);
-    const start = startOfMonth(currentDate);
-    const end = endOfMonth(currentDate);
+    try {
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
 
-    const res = await fetch(
-      `/api/appointments?startDate=${start.toISOString()}&endDate=${end.toISOString()}`
-    );
-    const data = await res.json();
-    setAppointments(data);
-    setLoading(false);
+      const res = await fetch(
+        `/api/appointments?startDate=${start.toISOString()}&endDate=${end.toISOString()}`
+      );
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setAppointments(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAppointmentsForDate = (date: Date) => {
